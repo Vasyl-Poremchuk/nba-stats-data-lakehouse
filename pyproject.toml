@@ -4,4 +4,8 @@ version = "0.1.0"
 description = "A set of Glue jobs that use already collected NBA data to create a data lakehouse on AWS using the Medallion architecture."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "black>=25.1.0",
+    "boto3>=1.38.3",
+    "ruff>=0.11.7",
+]
