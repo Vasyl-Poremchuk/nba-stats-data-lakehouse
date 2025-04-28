@@ -1,4 +1,3 @@
-import json
 import logging
 from enum import StrEnum
 from typing import Literal
@@ -30,6 +29,11 @@ class LoadStatus(StrEnum):
     NOT_LOADED = "not_loaded"
 
 
+class ResponseStatus(StrEnum):
+    SUCCESS = "SUCCESS"
+    FAILURE = "FAILURE"
+
+
 # Initialize the S3 service client.
 s3_client = boto3.client(Client.S3)
 
@@ -49,7 +53,8 @@ def get_pages(bucket: str, prefix: str) -> PageIterator:
 
 
 def get_objects() -> list[dict]:
-    """Get a list of objects as a dictionary of the bucket name and object prefix.
+    """Get a list of objects as a dictionary of the bucket name and
+    object prefix.
 
     :return: List of objects.
     """
@@ -130,15 +135,16 @@ def load_into_bronze_layer_handler(event, context) -> dict:
             )
         except Exception as e:
             logger.error(
-                msg=f"Failed to copy `{source_key}` to `{destination_key}`: {e}"
+                msg=f"Failed to copy `{source_key}` to `{destination_key}`: "
+                f"{e}"
             )
-            raise
+            response = {"status": ResponseStatus.FAILURE, "message": str(e)}
+
+            return response
 
     response = {
-        "statusCode": 200,
-        "body": json.dumps(
-            {"message": "Data is Loaded into the Bronze Layer"}
-        ),
+        "status": ResponseStatus.SUCCESS,
+        "message": "Data is Loaded into the Bronze Layer",
     }
 
     return response
