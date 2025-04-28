@@ -168,3 +168,438 @@ resource "aws_lambda_permission" "bronze_layer_allow_event_bridge" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.bronze_layer_event_trigger.arn
 }
+
+# S3 bucket for storing AWS Glue Jobs.
+resource "aws_s3_bucket" "glue_jobs" {
+  bucket = var.glue_jobs_bucket_name
+}
+
+resource "aws_s3_object" "silver_layer_season_etl" {
+  bucket       = aws_s3_bucket.glue_jobs.bucket
+  key          = "silver/season_etl.py"
+  source       = "${path.module}/../src/silver/season_etl.py"
+  etag         = filemd5("${path.module}/../src/silver/season_etl.py")
+  content_type = "text/x-python"
+}
+
+resource "aws_s3_object" "silver_layer_conference_etl" {
+  bucket       = aws_s3_bucket.glue_jobs.bucket
+  key          = "silver/conference_etl.py"
+  source       = "${path.module}/../src/silver/conference_etl.py"
+  etag         = filemd5("${path.module}/../src/silver/conference_etl.py")
+  content_type = "text/x-python"
+}
+
+resource "aws_s3_object" "silver_layer_conference_stats_etl" {
+  bucket       = aws_s3_bucket.glue_jobs.bucket
+  key          = "silver/conference_stats_etl.py"
+  source       = "${path.module}/../src/silver/conference_stats_etl.py"
+  etag         = filemd5("${path.module}/../src/silver/conference_stats_etl.py")
+  content_type = "text/x-python"
+}
+
+resource "aws_s3_object" "silver_layer_team_stats_etl" {
+  bucket       = aws_s3_bucket.glue_jobs.bucket
+  key          = "silver/team_stats_etl.py"
+  source       = "${path.module}/../src/silver/team_stats_etl.py"
+  etag         = filemd5("${path.module}/../src/silver/team_stats_etl.py")
+  content_type = "text/x-python"
+}
+
+resource "aws_s3_object" "silver_layer_player_stats_etl" {
+  bucket       = aws_s3_bucket.glue_jobs.bucket
+  key          = "silver/player_stats_etl.py"
+  source       = "${path.module}/../src/silver/player_stats_etl.py"
+  etag         = filemd5("${path.module}/../src/silver/player_stats_etl.py")
+  content_type = "text/x-python"
+}
+
+resource "aws_s3_object" "silver_layer_teams_map" {
+  bucket = aws_s3_bucket.glue_jobs.bucket
+  key    = "silver/map/teams_map.json"
+  source = "${path.module}/../src/silver/map/teams_map.json"
+  etag   = filemd5("${path.module}/../src/silver/map/teams_map.json")
+}
+
+# Create AWS Glue Catalog DBs.
+resource "aws_glue_catalog_database" "silver_layer_seasons_glue_catalog_db" {
+  name = var.silver_layer_seasons_db
+}
+
+resource "aws_glue_catalog_database" "silver_layer_conferences_catalog_db" {
+  name = var.silver_layer_conferences_db
+}
+
+resource "aws_glue_catalog_database" "silver_layer_conferences_stats_catalog_db" {
+  name = var.silver_layer_conferences_stats_db
+}
+
+resource "aws_glue_catalog_database" "silver_layer_teams_stats_catalog_db" {
+  name = var.silver_layer_teams_stats_db
+}
+
+resource "aws_glue_catalog_database" "silver_layer_players_stats_catalog_db" {
+  name = var.silver_layer_players_stats_db
+}
+
+# IAM roles for AWS Glue jobs.
+resource "aws_iam_role" "silver_layer_season_etl_glue_job_role" {
+  name = "silver-layer-season-etl-glue-job-role"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "glue.amazonaws.com"
+          }
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role" "silver_layer_conference_etl_glue_job_role" {
+  name = "silver-layer-conference-etl-glue-job-role"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "glue.amazonaws.com"
+          }
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role" "silver_layer_conference_stats_etl_glue_job_role" {
+  name = "silver-layer-conference-stats-elt-glue-job-role"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "glue.amazonaws.com"
+          }
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role" "silver_layer_team_stats_etl_glue_job_role" {
+  name = "silver-layer-team-stats-etl-glue-job-role"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "glue.amazonaws.com"
+          }
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role" "silver_layer_player_stats_etl_glue_job_role" {
+  name = "silver-layer-player-stats-etl-glue-job-role"
+
+  assume_role_policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Action = "sts:AssumeRole"
+          Effect = "Allow"
+          Principal = {
+            Service = "glue.amazonaws.com"
+          }
+        }
+      ]
+    }
+  )
+}
+
+# Create AWS Glue jobs.
+resource "aws_glue_job" "silver_layer_season_etl_glue_job" {
+  name              = "silver-layer-season-etl-glue-job"
+  glue_version      = var.glue_jobs_version
+  role_arn          = aws_iam_role.silver_layer_season_etl_glue_job_role.arn
+  max_retries       = var.glue_jobs_max_retries
+  timeout           = var.glue_jobs_timeout
+  worker_type       = var.glue_jobs_worker_type
+  number_of_workers = var.glue_jobs_number_of_workers
+
+  command {
+    script_location = "s3://${aws_s3_bucket.glue_jobs.bucket}/silver/season_etl.py"
+    python_version  = var.glue_jobs_python_version
+  }
+
+  default_arguments = {
+    "--continuous-log-logGroup"          = aws_cloudwatch_log_group.silver_layer_season_etl_log_group.name
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--enable-continuous-log-filter"     = "true"
+    "--catalog"                          = var.glue_catalog
+    "--iceberg_s3_path"                  = "s3://${var.nba_data_lakehouse_bucket_name}/silver"
+    "--bucket_name"                      = var.nba_data_lakehouse_bucket_name
+    "--teams_map_s3_path"                = "s3://${var.glue_jobs_bucket_name}/silver/map/teams_map.json"
+  }
+}
+
+resource "aws_glue_job" "silver_layer_conference_etl_glue_job" {
+  name              = "silver-layer-conference-etl-glue-job"
+  glue_version      = var.glue_jobs_version
+  role_arn          = aws_iam_role.silver_layer_conference_etl_glue_job_role.arn
+  max_retries       = var.glue_jobs_max_retries
+  timeout           = var.glue_jobs_timeout
+  worker_type       = var.glue_jobs_worker_type
+  number_of_workers = var.glue_jobs_number_of_workers
+
+  command {
+    script_location = "s3://${aws_s3_bucket.glue_jobs.bucket}/silver/conference_etl.py"
+    python_version  = var.glue_jobs_python_version
+  }
+
+  default_arguments = {
+    "--continous-log-logGroup"          = aws_cloudwatch_log_group.silver_layer_conference_etl_log_group.name
+    "--enable-continous-cloudwatch-log" = "true"
+    "--enable-continous-log-filter"     = "true"
+    "--catalog"                         = var.glue_catalog
+    "--iceberg_s3_path"                 = "s3://${var.nba_data_lakehouse_bucket_name}/silver"
+    "--bucket_name"                     = var.nba_data_lakehouse_bucket_name
+    "--teams_map_s3_path"               = "s3://${var.glue_jobs_bucket_name}/silver/map/teams_map.json"
+  }
+}
+
+resource "aws_glue_job" "silver_layer_conference_stats_etl_glue_job" {
+  name              = "silver-layer-conference-stats-etl-glue-job"
+  glue_version      = var.glue_jobs_version
+  role_arn          = aws_iam_role.silver_layer_conference_stats_etl_glue_job_role.arn
+  max_retries       = var.glue_jobs_max_retries
+  timeout           = var.glue_jobs_timeout
+  worker_type       = var.glue_jobs_worker_type
+  number_of_workers = var.glue_jobs_number_of_workers
+
+  command {
+    script_location = "s3://${aws_s3_bucket.glue_jobs.bucket}/silver/conference_stats_etl.py"
+    python_version  = var.glue_jobs_python_version
+  }
+
+  default_arguments = {
+    "--continous-log-logGroup"          = aws_cloudwatch_log_group.silver_layer_conference_stats_etl_log_group.name
+    "--enable-continous-cloudwatch-log" = "true"
+    "--enable-continous-log-filter"     = "true"
+    "--catalog"                         = var.glue_catalog
+    "--iceberg_s3_path"                 = "s3://${var.nba_data_lakehouse_bucket_name}/silver"
+    "--bucket_name"                     = var.nba_data_lakehouse_bucket_name
+    "--teams_map_s3_path"               = "s3://${var.glue_jobs_bucket_name}/silver/map/teams_map.json"
+  }
+}
+
+resource "aws_glue_job" "silver_layer_team_stats_etl_glue_job" {
+  name              = "silvery-layer-team-stats-etl-glue-job"
+  glue_version      = var.glue_jobs_version
+  role_arn          = aws_iam_role.silver_layer_team_stats_etl_glue_job_role.arn
+  max_retries       = var.glue_jobs_max_retries
+  worker_type       = var.glue_jobs_worker_type
+  number_of_workers = var.glue_jobs_number_of_workers
+
+  command {
+    script_location = "s3://${aws_s3_bucket.glue_jobs.bucket}/silver/team_stats_etl.py"
+    python_version  = var.glue_jobs_python_version
+  }
+
+  default_arguments = {
+    "--continous-log-logGroup"          = aws_cloudwatch_log_group.silver_layer_team_stats_etl_log_group.name
+    "--enable-continous-cloudwatch-log" = "true"
+    "--enable-continuous-log-filter"    = "true"
+    "--catalog"                         = var.glue_catalog
+    "--iceberg_s3_path"                 = "s3://${var.nba_data_lakehouse_bucket_name}/silver"
+    "--bucket_name"                     = var.nba_data_lakehouse_bucket_name
+  }
+}
+
+resource "aws_glue_job" "silver_layer_player_stats_etl_glue_job" {
+  name              = "silver-layer-player-stats-etl-glue-job"
+  glue_version      = var.glue_jobs_version
+  role_arn          = aws_iam_role.silver_layer_player_stats_etl_glue_job_role.arn
+  max_retries       = var.glue_jobs_max_retries
+  worker_type       = var.glue_jobs_worker_type
+  number_of_workers = var.glue_jobs_number_of_workers
+
+  command {
+    script_location = "s3://${aws_s3_bucket.glue_jobs.bucket}/silver/player_stats_etl.py"
+    python_version  = var.glue_jobs_python_version
+  }
+
+  default_arguments = {
+    "--continous-log-logGroup"          = aws_cloudwatch_log_group.silver_layer_player_stats_etl_log_group.name
+    "--enable-continous-cloudwatch-log" = "true"
+    "--enable-continous-log-filter"     = "true"
+    "--catalog"                         = var.glue_catalog
+    "--iceberg_s3_path"                 = "s3://${var.nba_data_lakehouse_bucket_name}/silver"
+    "--bucket_name"                     = var.nba_data_lakehouse_bucket_name
+  }
+}
+
+# IAM policy for interacting with S3 bucket objects.
+resource "aws_iam_policy" "silver_layer_s3_access_policy" {
+  name = "silver-layer-s3-access-policy"
+
+  policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Action = [
+            "s3:ListBucket",
+            "s3:GetObject",
+            "s3:PutObject"
+          ]
+          Resource = [
+            "arn:aws:s3:::${var.glue_jobs_bucket_name}",
+            "arn:aws:s3:::${var.glue_jobs_bucket_name}/silver/*",
+            "arn:aws:s3:::${var.nba_data_lakehouse_bucket_name}",
+            "arn:aws:s3:::${var.nba_data_lakehouse_bucket_name}/bronze/*",
+            "arn:aws:s3:::${var.nba_data_lakehouse_bucket_name}/silver/*",
+          ]
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_policy" "silver_layer_glue_policy" {
+  name = "silver-layer-glue-policy"
+
+  policy = jsonencode(
+    {
+      Version = "2012-10-17"
+      Statement = [
+        {
+          Effect = "Allow"
+          Action = [
+            "glue:GetJob",
+            "glue:GetJobs",
+            "glue:StartJobRun",
+            "glue:GetJobRun",
+            "glue:GetJobRuns",
+            "glue:GetTable",
+            "glue:GetTables",
+            "glue:CreateTable",
+            "glue:UpdateTable",
+            "glue:DeleteTable",
+            "glue:GetDatabase",
+            "glue:GetDatabases",
+            "glue:CreatePartition",
+            "glue:GetPartition",
+            "glue:GetPartitions",
+            "glue:DeletePartition",
+            "glue:DeletePartition",
+            "glue:BatchCreatePartition"
+          ]
+          Resource = "*"
+        }
+      ]
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_season_etl_s3_access_policy_attachment" {
+  role       = aws_iam_role.silver_layer_season_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_s3_access_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_conference_etl_s3_access_policy_attachment" {
+  role       = aws_iam_role.silver_layer_conference_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_s3_access_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_conference_stats_etl_s3_access_policy_attachment" {
+  role       = aws_iam_role.silver_layer_conference_stats_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_s3_access_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_team_stats_etl_s3_access_policy_attachment" {
+  role       = aws_iam_role.silver_layer_team_stats_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_s3_access_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_player_stats_etl_s3_access_policy_attachment" {
+  role       = aws_iam_role.silver_layer_player_stats_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_s3_access_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_season_etl_glue_policy_attachment" {
+  role       = aws_iam_role.silver_layer_season_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_glue_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_conference_etl_glue_policy_attachment" {
+  role       = aws_iam_role.silver_layer_conference_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_glue_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_conference_stats_etl_glue_policy_attachment" {
+  role       = aws_iam_role.silver_layer_conference_stats_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_glue_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_team_stats_elt_glue_policy_attachment" {
+  role       = aws_iam_role.silver_layer_team_stats_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_glue_policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "silver_layer_player_stats_etl_glue_policy_attachment" {
+  role       = aws_iam_role.silver_layer_player_stats_etl_glue_job_role.name
+  policy_arn = aws_iam_policy.silver_layer_glue_policy.arn
+}
+
+resource "aws_cloudwatch_log_group" "silver_layer_season_etl_log_group" {
+  name = "/aws/glue/silver-layer-season-etl-glue-job"
+
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "silver_layer_conference_etl_log_group" {
+  name = "/aws/glue/silver-layer-conference-etl-glue-job"
+
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "silver_layer_conference_stats_etl_log_group" {
+  name = "/aws/glue/silver-layer-conference-stats-etl-glue-job"
+
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "silver_layer_team_stats_etl_log_group" {
+  name = "/aws/glue/silver-layer-team-stats-etl-glue-job"
+
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "silver_layer_player_stats_etl_log_group" {
+  name = "/aws/glue/silver-layer-player-stats-etl-glue-job"
+
+  retention_in_days = 30
+}
