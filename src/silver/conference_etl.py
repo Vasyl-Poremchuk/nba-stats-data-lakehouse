@@ -165,6 +165,21 @@ class ConferenceETL:
 
         return df
 
+    @staticmethod
+    def update_wins_loss_percentage_values(df: DataFrame) -> DataFrame:
+        """Update the `wins_loss_percentage` column values by multiplying them
+        by 100.
+
+        :param df: Dataframe to use.
+        :return: Dataframe with updated `wins_loss_percentage` column values.
+        """
+        df = df.withColumn(
+            "wins_loss_percentage",
+            F.round(F.col("wins_loss_percentage") * 100, 1),
+        )
+
+        return df
+
     def add_team_abbr_column(self, df: DataFrame) -> DataFrame:
         """Add the team abbreviation column to the dataframe
         based on the team column values.
@@ -269,6 +284,9 @@ def run() -> None:
 
         conference_df = conference_etl.read_to_df()
         conference_df = conference_etl.add_team_abbr_column(df=conference_df)
+        conference_df = conference_etl.update_wins_loss_percentage_values(
+            df=conference_df
+        )
         conference_df = conference_etl.add_sk_columns(df=conference_df)
 
         conference_etl.write_to_iceberg(
