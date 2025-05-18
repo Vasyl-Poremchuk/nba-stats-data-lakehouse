@@ -308,7 +308,7 @@ class GoldETL:
         return passed_df, failed_df
 
     @staticmethod
-    def _quarantine_table_name(table_name: str) -> str:
+    def _get_quarantine_table_name(table_name: str) -> str:
         """Get the quarantine table name.
 
         :param table_name: A table name to use.
@@ -326,7 +326,7 @@ class GoldETL:
         :return: Metadata.
         """
         db_name, table_name = TABLES_MAP.get(key)
-        quarantine_table_name = self._quarantine_table_name(
+        quarantine_table_name = self._get_quarantine_table_name(
             table_name=table_name
         )
 
