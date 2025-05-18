@@ -104,7 +104,7 @@ def load_into_bronze_layer_handler(event, context) -> dict:
 
     :param event: Lambda event data.
     :param context: Lambda context object.
-    :return:
+    :return: Response with status and message.
     """
     logger.info(msg="Loading Data into the Bronze Layer")
 

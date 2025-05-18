@@ -221,11 +221,12 @@ class ConferenceETL:
 
     @staticmethod
     def update_wins_loss_percentage_values(df: DataFrame) -> DataFrame:
-        """Update the `wins_loss_percentage` column values by multiplying them
-        by 100.
+        """Update the `wins_loss_percentage` column values
+        by multiplying them by 100.
 
         :param df: Dataframe to use.
-        :return: Dataframe with updated `wins_loss_percentage` column values.
+        :return: Dataframe with updated `wins_loss_percentage`
+            column values.
         """
         df = df.withColumn(
             "wins_loss_percentage",
