@@ -1,0 +1,8 @@
+Rules = [
+    RowCount between 34 and 138,
+    IsComplete "season_sk",
+    ColumnLength "season_sk" = 32,
+    IsComplete "mvp_sk",
+    ColumnLength "mvp_sk" = 32,
+    IsComplete "mvp",
+]

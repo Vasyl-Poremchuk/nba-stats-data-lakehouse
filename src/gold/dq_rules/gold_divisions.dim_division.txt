@@ -1,0 +1,10 @@
+Rules = [
+    RowCount between 783 and 3134,
+    IsComplete "division_sk",
+    ColumnLength "division_sk" = 32,
+    IsComplete "division",
+    ColumnValues "division" in ["Central","Pacific","Atlantic","Midwest","Southwest","Northwest","Southeast","Western","Eastern"],
+    ColumnValues "division" in ["Central","Pacific","Atlantic","Midwest","Southwest","Northwest","Southeast"] with threshold >= 0.89,
+    IsComplete "team_sk",
+    ColumnLength "team_sk" = 32
+]

@@ -1,0 +1,15 @@
+Rules = [
+    RowCount between 780 and 3120,
+    IsComplete "season_sk",
+    ColumnLength "season_sk" = 32,
+    IsComplete "team_sk",
+    ColumnLength "team_sk" = 32,
+    IsComplete "arena_sk",
+    ColumnLength "arena_sk" = 32,
+    Completeness "attendance" >= 0.7,
+    StandardDeviation "attendance" between 147620.3 and 199417.0,
+    ColumnValues "attendance" between 5234.4 and 1179830.3,
+    Completeness "attendance_per_game" >= 0.9,
+    StandardDeviation "attendance_per_game" between 5954.6 and 8043.9,
+    ColumnValues "attendance_per_game" between 122.4 and 28754.0,
+]

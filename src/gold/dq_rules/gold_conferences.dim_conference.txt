@@ -1,0 +1,9 @@
+Rules = [
+    RowCount between 783 and 3134,
+    IsComplete "conference_sk",
+    ColumnLength "conference_sk" = 32,
+    IsComplete "conference",
+    ColumnValues "conference" in ["Western","Eastern"],
+    IsComplete "division_sk",
+    ColumnLength "division_sk" = 32
+]

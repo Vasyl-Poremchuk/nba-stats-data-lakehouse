@@ -1,0 +1,12 @@
+Rules = [
+    RowCount between 34 and 138,
+    IsComplete "season_sk",
+    Uniqueness "season_sk" > 0.95,
+    ColumnLength "season_sk" = 32,
+    IsComplete "player_sk",
+    ColumnLength "player_sk" = 32,
+    IsComplete "points",
+    StandardDeviation "points" between 325.7 and 439.9,
+    Uniqueness "points" > 0.95,
+    ColumnValues "points" between 1159.2 and 4433.0,
+]

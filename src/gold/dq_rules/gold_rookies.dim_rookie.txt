@@ -1,0 +1,11 @@
+Rules = [
+    RowCount between 34 and 138,
+    IsComplete "season_sk",
+    Uniqueness "season_sk" > 0.95,
+    ColumnLength "season_sk" = 32,
+    IsComplete "rookie_of_the_year_sk",
+    Uniqueness "rookie_of_the_year_sk" > 0.95,
+    ColumnLength "rookie_of_the_year_sk" = 32,
+    IsComplete "rookie_of_the_year",
+    Uniqueness "rookie_of_the_year" > 0.95,
+]

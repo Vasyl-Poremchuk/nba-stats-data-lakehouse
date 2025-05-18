@@ -1,0 +1,6 @@
+Rules = [
+    RowCount between 780 and 3120,
+    IsComplete "arena_sk",
+    ColumnLength "arena_sk" = 32,
+    IsComplete "arena",
+]

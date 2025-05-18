@@ -1,0 +1,13 @@
+Rules = [
+    RowCount between 783 and 3134,
+    IsComplete "season_sk",
+    ColumnLength "season_sk" = 32,
+    IsComplete "season",
+    IsComplete "league",
+    ColumnValues "league" in ["NBA"],
+    IsComplete "year",
+    StandardDeviation "year" between 16.81 and 18.58,
+    ColumnValues "year" between 1955 and 2050,
+    IsComplete "conference_sk",
+    ColumnLength "conference_sk" = 32
+]
