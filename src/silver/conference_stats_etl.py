@@ -5,7 +5,10 @@ import pyspark.sql.functions as F
 import pyspark.sql.types as T
 from awsglue.utils import getResolvedOptions
 from awsglue.context import GlueContext
+from awsglue.dynamicframe import DynamicFrame
 from awsglue.job import Job
+from awsglue.transforms import SelectFromCollection
+from awsgluedq.transforms import EvaluateDataQuality
 from botocore.paginate import PageIterator
 from pyspark import SparkConf
 from pyspark.context import SparkContext
@@ -20,6 +23,8 @@ args = getResolvedOptions(
         "iceberg_s3_path",
         "bucket_name",
         "teams_map_s3_path",
+        "glue_jobs_bucket_name",
+        "dq_rules_prefix",
     ],
 )
 
@@ -27,6 +32,8 @@ CATALOG = args.get("catalog")
 ICEBERG_S3_PATH = args.get("iceberg_s3_path")
 BUCKET_NAME = args.get("bucket_name")
 TEAMS_MAP_S3_PATH = args.get("teams_map_s3_path")
+GLUE_JOBS_BUCKET_NAME = args.get("glue_jobs_bucket_name")
+DQ_RULES_PREFIX = args.get("dq_rules_prefix")
 
 STATS_TYPE_MAP = {
     "advanced_teams_stats": "advanced",
@@ -39,6 +46,13 @@ STATS_TYPE_MAP = {
     "total_opponents_stats": "total",
     "total_teams_stats": "total",
 }
+
+DQ_COLUMNS_TO_DROP = [
+    "DataQualityRulesPass",
+    "DataQualityRulesFail",
+    "DataQualityRulesSkip",
+    "DataQualityEvaluationResult",
+]
 
 
 def set_spark_iceberg_conf(catalog: str, iceberg_s3_path: str) -> SparkConf:
@@ -69,11 +83,9 @@ def set_spark_iceberg_conf(catalog: str, iceberg_s3_path: str) -> SparkConf:
     return spark_conf
 
 
-class Retriever:
-    def __init__(self, prefix: str) -> None:
-        self.prefix = f"bronze/{prefix}"
+class S3Client:
+    def __init__(self) -> None:
         self._client_name = "s3"
-        self._db_name_prefix = "silver_"
 
     def _get_s3_client(self) -> boto3.client:
         """Initialize an S3 client.
@@ -83,6 +95,13 @@ class Retriever:
         s3_client = boto3.client(self._client_name)
 
         return s3_client
+
+
+class Retriever(S3Client):
+    def __init__(self, prefix: str) -> None:
+        super().__init__()
+        self.prefix = f"bronze/{prefix}"
+        self._db_name_prefix = "silver_"
 
     def get_pages(self) -> PageIterator:
         """Get a list of pages as objects metadata.
@@ -150,6 +169,41 @@ class Retriever:
                 objects_metadata.append(object_metadata)
 
         return objects_metadata
+
+
+class DQ(S3Client):
+    def __init__(self, db_name: str, table_name: str) -> None:
+        super().__init__()
+        self.db_name = db_name
+        self.table_name = table_name
+
+    def _get_dq_rules_key(self) -> str:
+        """Get the key to the data quality rules file.
+
+        :return: DQ rules key.
+        """
+        dq_rules_key = (
+            f"{DQ_RULES_PREFIX}/{self.db_name}.{self.table_name}.txt"
+        )
+
+        return dq_rules_key
+
+    def get_dq_rules(self) -> str:
+        """Get a list of data quality rules.
+
+        :return: DQ rules.
+        """
+        s3_client = self._get_s3_client()
+        dq_rules_key = self._get_dq_rules_key()
+
+        response = s3_client.get_object(
+            Bucket=GLUE_JOBS_BUCKET_NAME, Key=dq_rules_key
+        )
+
+        body = response.get("Body")
+        dq_rules = body.read().decode("utf-8")
+
+        return dq_rules
 
 
 class ConferenceStatsETL:
@@ -416,6 +470,68 @@ class ConferenceStatsETL:
 
         return is_exist
 
+    @staticmethod
+    def get_dyf(
+        df: DataFrame, glue_context: GlueContext, db_name: str, table_name: str
+    ) -> DynamicFrame:
+        """Get a dynamic frame from the Spark dataframe.
+
+        :param df: Dataframe to use.
+        :param glue_context: AWS Glue context.
+        :param db_name: The database name registered in AWS Glue.
+        :param table_name: The table name that will be stored in
+            the Iceberg format.
+        :return: DynamicFrame.
+        """
+        dyf = DynamicFrame.fromDF(
+            dataframe=df,
+            glue_ctx=glue_context,
+            name=f"{db_name}__{table_name}_dyf",
+        )
+
+        return dyf
+
+    @staticmethod
+    def evaluate_dyf(
+        dyf: DynamicFrame, dq_rules: str, db_name: str, table_name: str
+    ) -> tuple[DataFrame, DataFrame]:
+        """Evaluate the dynamic frame against the data quality rules.
+
+        :param dyf: Dynamic frame for evaluation.
+        :param dq_rules: Data quality rules.
+        :param db_name: The database name registered in AWS Glue.
+        :param table_name: The table name that will be stored in
+            the Iceberg format.
+        :return: Dataframes with `Passed` and `Failed` statuses.
+        """
+        dq_multiframe = EvaluateDataQuality().process_rows(
+            frame=dyf,
+            ruleset=dq_rules,
+            publishing_options={
+                "dataQualityEvaluationContext": f"{db_name}__{table_name}",
+                "enableDataQualityCloudWatchMetrics": False,
+                "enableDataQualityResultsPublishing": False,
+            },
+            additional_options={"performanceTuning.caching": "CACHE_NOTHING"},
+        )
+
+        dq_row_level_outcomes = SelectFromCollection.apply(
+            dfc=dq_multiframe,
+            key="rowLevelOutcomes",
+        )
+        dq_row_level_outcomes_df = dq_row_level_outcomes.toDF()
+
+        passed_df = dq_row_level_outcomes_df.filter(
+            F.col("DataQualityEvaluationResult") == "Passed"
+        )
+        passed_df = passed_df.drop(*DQ_COLUMNS_TO_DROP)
+
+        failed_df = dq_row_level_outcomes_df.filter(
+            F.col("DataQualityEvaluationResult") == "Failed"
+        )
+
+        return passed_df, failed_df
+
     def write_to_iceberg(
         self, df: DataFrame, catalog: str, db_name: str, table_name: str
     ) -> None:
@@ -463,6 +579,9 @@ def run() -> None:
         db_name = object_metadata.get("db_name")
         table_name = object_metadata.get("table_name")
 
+        dq = DQ(db_name=db_name, table_name=table_name)
+        dq_rules = dq.get_dq_rules()
+
         stats_type = STATS_TYPE_MAP.get(table_name)
 
         conference_stats_etl = ConferenceStatsETL(spark=spark, s3_uri=s3_uri)
@@ -481,11 +600,33 @@ def run() -> None:
             df=conference_stats_df
         )
 
-        conference_stats_etl.write_to_iceberg(
+        conference_stats_dyf = conference_stats_etl.get_dyf(
             df=conference_stats_df,
+            glue_context=glue_context,
+            db_name=db_name,
+            table_name=table_name,
+        )
+        passed_conference_stats_df, failed_conference_stats_df = (
+            conference_stats_etl.evaluate_dyf(
+                dyf=conference_stats_dyf,
+                dq_rules=dq_rules,
+                db_name=db_name,
+                table_name=table_name,
+            )
+        )
+
+        conference_stats_etl.write_to_iceberg(
+            df=passed_conference_stats_df,
             catalog=CATALOG,
             db_name=db_name,
             table_name=table_name,
+        )
+
+        conference_stats_etl.write_to_iceberg(
+            df=failed_conference_stats_df,
+            catalog=CATALOG,
+            db_name=db_name,
+            table_name=f"{table_name}_quarantine",
         )
 
     job.commit()
