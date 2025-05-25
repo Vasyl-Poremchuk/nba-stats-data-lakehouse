@@ -1,0 +1,32 @@
+## Data Dictionary: `fact_opponent_shooting_stats` table.
+
+| #  | column_name                                        | data_type | nullable | description                                                                     | constraints | example                          |
+|----|----------------------------------------------------|-----------|----------|---------------------------------------------------------------------------------|-------------|----------------------------------|
+| 1  | season_sk                                          | string    | No       | Surrogate key generated using MD5 hash of the season (e.g., `2023-24`)          | FK          | 0c1b198624c9263cdc946d02e83e4a24 |
+| 2  | team_sk                                            | string    | No       | Surrogate key generated using MD5 hash of the team name (e.g., `Chicago Bulls`) | FK          | 5452e84700b026429276de4e8e6931df |
+| 3  | rank                                               | bigint    | No       | Team’s rank based on shooting performance                                       |             | 5                                |
+| 4  | games                                              | bigint    | No       | Number of games played in the season                                            |             | 82                               |
+| 5  | minutes_played                                     | bigint    | No       | Total minutes played by the team                                                |             | 19755                            |
+| 6  | field_goal_percentage                              | double    | No       | Overall field goal shooting percentage                                          |             | 43.1                             |
+| 7  | average_distance_of_field_goal_attempts            | double    | No       | Average distance (in feet) of all field goal attempts                           |             | 13.5                             |
+| 8  | 2_point_field_goal_attempts_percentage             | double    | No       | Percentage of field goal attempts taken as 2-pointers                           |             | 64.2                             |
+| 9  | 0_3_ft_field_goal_attempts_percentage              | double    | No       | Percentage of field goal attempts taken from 0 to 3 feet                        |             | 13.7                             |
+| 10 | 3_10_ft_field_goal_attempts_percentage             | double    | No       | Percentage of field goal attempts taken from 3 to 10 feet                       |             | 10.5                             |
+| 11 | 10_16_ft_field_goal_attempts_percentage            | double    | No       | Percentage of field goal attempts taken from 10 to 16 feet                      |             | 8.3                              |
+| 12 | 16_ft_3_point_field_goal_attempts_percentage       | double    | No       | Percentage of field goal attempts taken from 16 feet to the 3-point line        |             | 6.2                              |
+| 13 | 3_point_field_goal_attempts_percentage             | double    | No       | Percentage of field goal attempts taken from beyond the 3-point line            |             | 35.8                             |
+| 14 | 2_point_field_goal_percentage                      | double    | No       | Field goal shooting percentage on 2-point attempts                              |             | 49.1                             |
+| 15 | 0_3_ft_field_goal_percentage                       | double    | No       | Field goal shooting percentage from 0 to 3 feet                                 |             | 65.7                             |
+| 16 | 3_10_ft_field_goal_percentage                      | double    | No       | Field goal shooting percentage from 3 to 10 feet                                |             | 42.3                             |
+| 17 | 10_16_ft_field_goal_percentage                     | double    | No       | Field goal shooting percentage from 10 to 16 feet                               |             | 40.8                             |
+| 18 | 16_ft_3_point_field_goal_percentage                | double    | No       | Field goal shooting percentage from 16 feet to the 3-point line                 |             | 38.5                             |
+| 19 | 3_point_field_goal_percentage                      | double    | No       | Field goal shooting percentage from beyond the 3-point line                     |             | 33.7                             |
+| 20 | 2_point_assisted_field_goal_percentage             | double    | No       | Percentage of 2-point field goals that were assisted                            |             | 53.9                             |
+| 21 | 3_point_assisted_field_goal_percentage             | double    | No       | Percentage of 3-point field goals that were assisted                            |             | 84.2                             |
+| 22 | field_goal_dunk_attempts_percentage                | double    | No       | Percentage of field goal attempts that were dunks                               |             | 5.1                              |
+| 23 | field_goal_dunk                                    | double    | No       | Average number of dunks attempted                                               |             | 1.7                              |
+| 24 | 3_point_field_goal_from_corner_percentage          | double    | No       | Percentage of made 3-point field goals that came from the corner                |             | 38.2                             |
+| 25 | 3_point_field_goal_attempts_from_corner_percentage | double    | No       | Percentage of 3-point field goal attempts that came from the corner             |             | 22.4                             |
+| 26 | is_playoff_team                                    | boolean   | No       | Indicates whether the team qualified for the playoffs                           |             | true                             |
+| 27 | field_goal_layup_attempts_percentage               | double    | Yes      | Percentage of field goal attempts that were layups                              |             | 19.8                             |
+| 28 | field_goal_layups                                  | double    | Yes      | Average number of layups attempted                                              |             | 6.4                              |

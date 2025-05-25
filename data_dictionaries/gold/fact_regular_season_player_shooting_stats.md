@@ -1,0 +1,33 @@
+## Data Dictionary: `fact_regular_season_player_shooting_stats` table.
+
+| #  | column_name                                        | data_type | nullable | description                                                                      | constraints | example                          |
+|----|----------------------------------------------------|-----------|----------|----------------------------------------------------------------------------------|-------------|----------------------------------|
+| 1  | season_sk                                          | string    | No       | Surrogate key generated using MD5 hash of the season (e.g., `2023-24`)           | FK          | 60a03b5878a3e5aadf15db0b7607b930 |
+| 2  | team_sk                                            | string    | No       | Surrogate key generated using MD5 hash of the team name (e.g., `Chicago Bulls`)  | FK          | e938c5bbd29de26c3a600a0330465f8b |
+| 3  | player_sk                                          | string    | No       | Surrogate key generated using MD5 hash of the player name (e.g., `LeBron James`) | FK          | 7a1f97ab3e8b4f0a9e8d2c1234567890 |
+| 4  | rank                                               | int       | No       | Player’s ranking in the team or league for the season                            |             | 5                                |
+| 5  | games                                              | int       | No       | Total number of games played by the player in the season                         |             | 82                               |
+| 6  | games_started                                      | int       | No       | Total number of games started by the player                                      |             | 75                               |
+| 7  | minutes_played                                     | int       | No       | Total number of minutes played by the player in the season                       |             | 2600                             |
+| 8  | field_goal_percentage                              | double    | Yes      | Percentage of field goals made                                                   |             | 42.6                             |
+| 9  | average_distance_of_field_goal_attempts            | double    | Yes      | Average distance (in feet) of the player’s field goal attempts                   |             | 14.2                             |
+| 10 | 2_point_field_goal_attempts_percentage             | double    | Yes      | Percentage of total field goal attempts that are 2-point attempts                |             | 75.5                             |
+| 11 | 0_3_ft_field_goal_attempts_percentage              | double    | Yes      | Percentage of total field goal attempts taken from 0-3 feet                      |             | 12.3                             |
+| 12 | 3_10_ft_field_goal_attempts_percentage             | double    | Yes      | Percentage of total field goal attempts taken from 3-10 feet                     |             | 18.7                             |
+| 13 | 10_16_ft_field_goal_attempts_percentage            | double    | Yes      | Percentage of total field goal attempts taken from 10-16 feet                    |             | 10.5                             |
+| 14 | 16_ft_3_point_field_goal_attempts_percentage       | double    | Yes      | Percentage of total field goal attempts taken from 16 ft to 3-point line         |             | 14.0                             |
+| 15 | 3_point_field_goal_attempts_percentage             | double    | Yes      | Percentage of total field goal attempts that are 3-point attempts                |             | 24.5                             |
+| 16 | 2_point_field_goal_percentage                      | double    | Yes      | Percentage of 2-point field goals made                                           |             | 43.6                             |
+| 17 | 0_3_ft_field_goal_percentage                       | double    | Yes      | Percentage of field goals made from 0-3 feet                                     |             | 50.1                             |
+| 18 | 3_10_ft_field_goal_percentage                      | double    | Yes      | Percentage of field goals made from 3-10 feet                                    |             | 40.0                             |
+| 19 | 10_16_ft_field_goal_percentage                     | double    | Yes      | Percentage of field goals made from 10-16 feet                                   |             | 38.2                             |
+| 20 | 16_ft_3_point_field_goal_percentage                | double    | Yes      | Percentage of field goals made from 16 ft to 3-point line                        |             | 33.3                             |
+| 21 | 3_point_field_goal_percentage                      | double    | Yes      | Percentage of 3-point field goals made                                           |             | 36.7                             |
+| 22 | 2_point_assisted_field_goal_percentage             | double    | Yes      | Percentage of 2-point field goals that were assisted                             |             | 60.2                             |
+| 23 | 3_point_assisted_field_goal_percentage             | double    | Yes      | Percentage of 3-point field goals that were assisted                             |             | 72.5                             |
+| 24 | field_goal_dunk_attempts_percentage                | double    | Yes      | Percentage of field goal attempts that were dunks                                |             | 10.0                             |
+| 25 | number_of_made_dunk_attempts                       | int       | No       | Total number of dunk attempts made by the player                                 |             | 45                               |
+| 26 | 3_point_field_goal_from_corner_percentage          | double    | Yes      | Percentage of 3-point field goals made from the corner                           |             | 25.0                             |
+| 27 | 3_point_field_goal_attempts_from_corner_percentage | double    | Yes      | Percentage of 3-point field goal attempts taken from the corner                  |             | 27.0                             |
+| 28 | heave_attempts                                     | int       | No       | Number of very long-range ("heave") shot attempts by the player                  |             | 3                                |
+| 29 | heaves_made                                        | int       | No       | Number of successful heave shots made                                            |             | 1                                |
