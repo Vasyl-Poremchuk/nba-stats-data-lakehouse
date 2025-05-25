@@ -270,7 +270,7 @@ class GoldETL:
     def evaluate_dyf(
         dyf: DynamicFrame, dq_rules: str, db_name: str, table_name: str
     ) -> tuple[DataFrame, DataFrame]:
-        """Evaludate the dynamic frame against the data quality rulues.
+        """Evaludate the dynamic frame against the data quality rules.
 
         :param dyf: Dynamic frame for evaluation.
         :param dq_rules: Data quality rules.
@@ -372,7 +372,7 @@ class GoldETL:
 
         select_query = f"""
         SELECT
-            s.season_sk,
+            DISTINCT s.season_sk,
             s.season,
             s.league,
             c.year,
@@ -542,7 +542,7 @@ class GoldETL:
 
         select_query = f"""
         SELECT
-            conference_sk,
+            DISTINCT conference_sk,
             conference,
             division_sk
         FROM
@@ -2326,6 +2326,8 @@ class GoldETL:
             minutes_played,
             field_goals,
             field_goal_attempts,
+            field_goal_percentage,
+            3_point_field_goals,
             3_point_field_goal_attempts,
             3_point_field_goal_percentage,
             2_point_field_goals,
@@ -2798,7 +2800,9 @@ class GoldETL:
             rank,
             salary
         FROM
-            {CATALOG}.silver_teams_stats.salaries;
+            {CATALOG}.silver_teams_stats.salaries
+        WHERE
+            player_sk IS NOT NULL;
         """
 
         df = self.spark.sql(select_query)

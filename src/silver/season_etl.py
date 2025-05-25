@@ -418,7 +418,7 @@ class SeasonETL:
     def evaluate_dyf(
         dyf: DynamicFrame, dq_rules: str, db_name: str, table_name: str
     ) -> tuple[DataFrame, DataFrame]:
-        """Evaludate the dynamic frame against the data quality rulues.
+        """Evaludate the dynamic frame against the data quality rules.
 
         :param dyf: Dynamic frame for evaluation.
         :param dq_rules: Data quality rules.
