@@ -13,6 +13,7 @@ from botocore.paginate import PageIterator
 from pyspark import SparkConf
 from pyspark.context import SparkContext
 from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.window import Window
 
 
 args = getResolvedOptions(
@@ -441,6 +442,35 @@ class ConferenceStatsETL:
                 "personal_fouls", F.col("personal_fouls").cast(T.IntegerType())
             )
             df = df.withColumn("points", F.col("points").cast(T.IntegerType()))
+
+        return df
+
+    @staticmethod
+    def update_arena_column(df: DataFrame) -> DataFrame:
+        """Update the `arena` column values by replacing their
+        null values with the 1st non-null value in the partition.
+
+        :param df: Dataframe to use.
+        :return: Dataframe with updated `arean` column values.
+        """
+        if "arena" not in df.columns:
+            return df
+
+        window = Window.orderBy(*["season", "team", "arena"]).rowsBetween(
+            Window.currentRow, Window.unboundedFollowing
+        )
+
+        df = df.withColumn(
+            "following_arena",
+            F.first(F.col("arena"), ignorenulls=True).over(window),
+        )
+        df = df.withColumn(
+            "arena",
+            F.when(
+                F.col("arena").isNull(), F.col("following_arena")
+            ).otherwise(F.col("arena")),
+        )
+        df = df.drop("following_arena")
 
         return df
 
