@@ -502,8 +502,36 @@ def run() -> None:
         db_name = object_metadata.get("db_name")
         table_name = object_metadata.get("table_name")
 
-        dq = DQ(db_name=db_name, table_name=table_name)
-        dq_rules = dq.get_dq_rules()
+        dq_seasons = DQ(db_name=db_name, table_name=table_name)
+        dq_seasons_rules = dq_seasons.get_dq_rules()
+
+        dq_top_performer_by_assists = DQ(
+            db_name=db_name, table_name=TopPerformer.BY_ASSISTS
+        )
+        dq_top_performer_by_assists_rules = (
+            dq_top_performer_by_assists.get_dq_rules()
+        )
+
+        dq_top_performer_by_points = DQ(
+            db_name=db_name, table_name=TopPerformer.BY_POINTS
+        )
+        dq_top_performer_by_points_rules = (
+            dq_top_performer_by_points.get_dq_rules()
+        )
+
+        dq_top_performer_by_rebounds = DQ(
+            db_name=db_name, table_name=TopPerformer.BY_REBOUNDS
+        )
+        dq_top_performer_by_rebounds_rules = (
+            dq_top_performer_by_rebounds.get_dq_rules()
+        )
+
+        dq_top_performer_by_win_shares = DQ(
+            db_name=db_name, table_name=TopPerformer.BY_WIN_SHARES
+        )
+        dq_top_performer_by_win_shares_rules = (
+            dq_top_performer_by_win_shares.get_dq_rules()
+        )
 
         season_etl = SeasonETL(spark=spark, s3_uri=s3_uri)
 
@@ -529,7 +557,7 @@ def run() -> None:
         )
         passed_season_df, failed_season_df = season_etl.evaluate_dyf(
             dyf=season_dyf,
-            dq_rules=dq_rules,
+            dq_rules=dq_seasons_rules,
             db_name=db_name,
             table_name=table_name,
         )
@@ -538,64 +566,64 @@ def run() -> None:
             df=top_performer_by_points_df,
             glue_context=glue_context,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_POINTS,
         )
         (
             passed_top_performer_by_points_df,
             failed_top_performer_by_points_df,
         ) = season_etl.evaluate_dyf(
             dyf=top_performer_by_points_dyf,
-            dq_rules=dq_rules,
+            dq_rules=dq_top_performer_by_points_rules,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_POINTS,
         )
 
         top_performer_by_rebounds_dyf = season_etl.get_dyf(
             df=top_performer_by_rebounds_df,
             glue_context=glue_context,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_REBOUNDS,
         )
         (
             passed_top_performer_by_rebounds_df,
             failed_top_performer_by_rebounds_df,
         ) = season_etl.evaluate_dyf(
             dyf=top_performer_by_rebounds_dyf,
-            dq_rules=dq_rules,
+            dq_rules=dq_top_performer_by_rebounds_rules,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_REBOUNDS,
         )
 
         top_performer_by_assists_dyf = season_etl.get_dyf(
             df=top_performer_by_assists_df,
             glue_context=glue_context,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_ASSISTS,
         )
         (
             passed_top_performer_by_assists_df,
             failed_top_performer_by_assists_df,
         ) = season_etl.evaluate_dyf(
             dyf=top_performer_by_assists_dyf,
-            dq_rules=dq_rules,
+            dq_rules=dq_top_performer_by_assists_rules,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_ASSISTS,
         )
 
         top_performer_by_win_shares_dyf = season_etl.get_dyf(
             df=top_performer_by_win_shares_df,
             glue_context=glue_context,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_WIN_SHARES,
         )
         (
             passed_top_performer_by_win_shares_df,
             failed_top_performer_by_win_shares_df,
         ) = season_etl.evaluate_dyf(
             dyf=top_performer_by_win_shares_dyf,
-            dq_rules=dq_rules,
+            dq_rules=dq_top_performer_by_win_shares_rules,
             db_name=db_name,
-            table_name=table_name,
+            table_name=TopPerformer.BY_WIN_SHARES,
         )
 
         season_etl.write_to_iceberg(
