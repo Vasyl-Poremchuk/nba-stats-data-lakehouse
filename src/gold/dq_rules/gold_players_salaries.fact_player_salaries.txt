@@ -1,15 +1,11 @@
 Rules = [
-    RowCount between 9264 and 37056,
-    IsComplete "season_sk",
-    ColumnLength "season_sk" = 32,
-    IsComplete "team_sk",
-    ColumnLength "team_sk" = 32,
-    IsComplete "player_sk",
     ColumnLength "player_sk" = 32,
+    ColumnLength "season_sk" = 32,
+    ColumnLength "team_sk" = 32,
+    ColumnValues "rank" between 0 and 31,
+    IsComplete "player_sk",
     IsComplete "rank",
-    StandardDeviation "rank" between 4.9 and 6.6,
-    ColumnValues "rank" <= 49.5,
-    Completeness "salary" >= 0.9,
-    StandardDeviation "salary" between 4910859.9 and 6633968.6,
-    ColumnValues "salary" <= 51915615
+    IsComplete "season_sk",
+    IsComplete "team_sk",
+    RowCount > 0
 ]

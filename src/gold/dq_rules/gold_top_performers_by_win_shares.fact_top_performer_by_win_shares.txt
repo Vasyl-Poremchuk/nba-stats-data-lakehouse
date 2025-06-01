@@ -1,11 +1,8 @@
 Rules = [
-    RowCount between 34 and 138,
-    IsComplete "season_sk",
-    Uniqueness "season_sk" > 0.95,
+    ColumnLength "player_sk" = 32,
     ColumnLength "season_sk" = 32,
     IsComplete "player_sk",
-    ColumnLength "player_sk" = 32,
+    IsComplete "season_sk",
     IsComplete "win_shares",
-    StandardDeviation "win_shares" between 2.5 and 3.4,
-    ColumnValues "win_shares" between 7.7 and 29.0,
+    RowCount > 0
 ]

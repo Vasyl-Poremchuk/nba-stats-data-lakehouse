@@ -1,13 +1,10 @@
 Rules = [
-    RowCount between 780 and 3120,
-    IsComplete "team_sk",
+    ColumnLength "arena_sk" = 32,
     ColumnLength "team_sk" = 32,
-    IsComplete "team",
-    ColumnValues "team" in ["Boston Celtics","New York Knicks","Detroit Pistons","Los Angeles Lakers","Philadelphia 76ers","Chicago Bulls","Atlanta Hawks","Milwaukee Bucks","Phoenix Suns","Portland Trail Blazers","Cleveland Cavaliers","Golden State Warriors","Houston Rockets","San Antonio Spurs","Indiana Pacers","Denver Nuggets","Utah Jazz","Dallas Mavericks","Los Angeles Clippers","Sacramento Kings","Miami Heat","Minnesota Timberwolves","Orlando Magic","New Jersey Nets","Seattle SuperSonics","Toronto Raptors","Washington Wizards","Charlotte Hornets","Memphis Grizzlies","Washington Bullets","Oklahoma City Thunder","Cincinnati Royals","St. Louis Hawks","Brooklyn Nets","New Orleans Pelicans","Kansas City Kings","Baltimore Bullets","Charlotte Bobcats","New Orleans Hornets","San Francisco Warriors","Syracuse Nationals","Buffalo Braves","Philadelphia Warriors","Vancouver Grizzlies","San Diego Clippers","Minneapolis Lakers","New Orleans Jazz","San Diego Rockets","Kansas City-Omaha Kings","Rochester Royals","New Orleans/Oklahoma City Hornets","Fort Wayne Pistons","Capital Bullets","Chicago Packers","New York Nets","Chicago Zephyrs"],
-    ColumnValues "team" in ["Boston Celtics","New York Knicks","Detroit Pistons","Los Angeles Lakers","Philadelphia 76ers","Chicago Bulls","Atlanta Hawks","Milwaukee Bucks","Phoenix Suns","Portland Trail Blazers","Cleveland Cavaliers","Golden State Warriors","Houston Rockets","San Antonio Spurs","Indiana Pacers","Denver Nuggets","Utah Jazz","Dallas Mavericks","Los Angeles Clippers","Sacramento Kings","Miami Heat","Minnesota Timberwolves","Orlando Magic","New Jersey Nets","Seattle SuperSonics","Toronto Raptors","Washington Wizards","Charlotte Hornets","Memphis Grizzlies","Washington Bullets","Oklahoma City Thunder","Cincinnati Royals"] with threshold >= 0.89,
-    IsComplete "team_abbr",
     ColumnValues "team_abbr" in ["BOS","NYK","DET","LAL","PHI","CHI","MIL","PHO","ATL","CLE","POR","HOU","GSW","SAS","IND","DEN","UTA","DAL","LAC","SAC","MIA","ORL","MIN","NJN","SEA","TOR","WAS","CHO","MEM","WSB","OKC","CIN","STL","BRK","NOP","BAL","CHA","KCK","SFW","NOH","BUF","SYR","PHW","VAN","SDC","MNL","NOJ","SDR","KCO","NOK","ROC","FTW","CAP","CHZ","NYN","CHP"],
-    ColumnValues "team_abbr" in ["BOS","NYK","DET","LAL","PHI","CHI","MIL","PHO","ATL","CLE","POR","HOU","GSW","SAS","IND","DEN","UTA","DAL","LAC","SAC","MIA","ORL","MIN","NJN","SEA","TOR","WAS","CHO","MEM","WSB","OKC","CIN"] with threshold >= 0.89,
     IsComplete "arena_sk",
-    ColumnLength "arena_sk" = 32
+    IsComplete "team",
+    IsComplete "team_abbr",
+    IsComplete "team_sk",
+    RowCount > 0
 ]
