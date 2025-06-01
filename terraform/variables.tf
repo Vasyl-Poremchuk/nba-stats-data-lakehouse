@@ -43,7 +43,7 @@ variable "glue_jobs_max_retries" {
 variable "glue_jobs_timeout" {
   description = "The max minutes to keep a session for AWS Glue Jobs"
   type        = number
-  default     = 60
+  default     = 120
 }
 
 variable "glue_jobs_worker_type" {

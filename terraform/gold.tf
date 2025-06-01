@@ -256,7 +256,8 @@ resource "aws_iam_policy" "gold_layer_s3_access_policy" {
           Action = [
             "s3:ListBucket",
             "s3:GetObject",
-            "s3:PutObject"
+            "s3:PutObject",
+            "s3:DeleteObject"
           ]
           Resource = [
             "arn:aws:s3:::${var.glue_jobs_bucket_name}",

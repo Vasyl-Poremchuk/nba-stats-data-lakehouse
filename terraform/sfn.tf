@@ -53,7 +53,8 @@ resource "aws_iam_role_policy" "step_function_policy" {
             aws_glue_job.silver_layer_conference_etl_glue_job.arn,
             aws_glue_job.silver_layer_conference_stats_etl_glue_job.arn,
             aws_glue_job.silver_layer_team_stats_etl_glue_job.arn,
-            aws_glue_job.silver_layer_player_stats_etl_glue_job.arn
+            aws_glue_job.silver_layer_player_stats_etl_glue_job.arn,
+            aws_glue_job.gold_layer_gold_etl_glue_job.arn
           ]
         }
       ]
@@ -78,7 +79,6 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
             "FunctionName" : aws_lambda_function.bronze_layer_trigger.function_name,
             "Payload.$" : "$"
           },
-          "ResultPath" : "$.bronzeResult",
           "Next" : "CheckStatus",
           "Retry" : [
             {
@@ -97,8 +97,7 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
               "ErrorEquals" : [
                 "States.TaskFailed"
               ],
-              "Next" : "HandleFailure",
-              "ResultPath" : "$.error"
+              "Next" : "HandleFailure"
             }
           ]
         },
@@ -106,12 +105,12 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
           "Type" : "Choice",
           "Choices" : [
             {
-              "Variable" : "$.bronzeResult.Payload.status",
+              "Variable" : "$.Payload.status",
               "StringEquals" : "SUCCESS",
               "Next" : "RunSilverLayerGlueJobsInParallel"
             },
             {
-              "Variable" : "$.bronzeResult.Payload.status",
+              "Variable" : "$.Payload.status",
               "StringEquals" : "FAILURE",
               "Next" : "HandleFailure"
             }
@@ -243,8 +242,7 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
               "ErrorEquals" : [
                 "States.TaskFailed"
               ],
-              "Next" : "HandlePartialFailure",
-              "ResultPath" : "$.parallelError"
+              "Next" : "HandlePartialFailure"
             }
           ]
         },
@@ -254,7 +252,6 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
           "Parameters" : {
             "JobName" : aws_glue_job.gold_layer_gold_etl_glue_job.name
           },
-          "ResultPath" : "$.goldResult",
           "Next" : "ProcessingComplete",
           "Retry" : [
             {
@@ -271,8 +268,7 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
               "ErrorEquals" : [
                 "States.TaskFailed"
               ],
-              "Next" : "HandleGoldLayerFailure",
-              "ResultPath" : "$.goldError"
+              "Next" : "HandleGoldLayerFailure"
             }
           ]
         },
@@ -286,10 +282,9 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
         },
         "HandleFailure" : {
           "Type" : "Pass",
-          "Parameters" : {
+          "Result" : {
             "status" : "FAILED",
-            "message" : "Bronze layer processing failed",
-            "originalError.$" : "$.bronzeResult.Payload"
+            "message" : "Bronze layer processing failed"
           },
           "End" : true
         },
@@ -311,14 +306,13 @@ resource "aws_sfn_state_machine" "nba_stats_data_pipeline" {
         }
       }
     }
-
   )
 }
 
 # EventBridge Rule to trigger Step Function on a schedule.
 resource "aws_cloudwatch_event_rule" "nba_data_pipeline_trigger" {
   name                = "nba-data-pipeline-trigger"
-  description         = "Trigger NBA data pipeline annually"
+  description         = "Trigger NBA data pipeline annually on November 2nd"
   schedule_expression = "cron(0 0 2 11 ? *)" # Run at midnight on November 2nd
 }
 
