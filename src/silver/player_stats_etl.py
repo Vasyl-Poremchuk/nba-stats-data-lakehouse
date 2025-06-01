@@ -206,6 +206,26 @@ class PlayerStatsETL:
         return df
 
     @staticmethod
+    def update_shooting_hand_column(df: DataFrame) -> DataFrame:
+        """Update the `shooting_hand` column values by sorting
+        their values and separating them by a delimiter.
+
+        :param df: Dataframe to use.
+        :return: Dataframe with updated `shooting_hand` column values.
+        """
+        df = df.withColumn(
+            "shooting_hand", F.split(F.col("shooting_hand"), " ")
+        )
+        df = df.withColumn(
+            "shooting_hand", F.sort_array(F.col("shooting_hand"))
+        )
+        df = df.withColumn(
+            "shooting_hand", F.array_join(F.col("shooting_hand"), "; ")
+        )
+
+        return df
+
+    @staticmethod
     def add_column_sk(df: DataFrame, column: str, column_sk: str) -> DataFrame:
         """Add a surrogate column based on the specified column.
 
@@ -351,6 +371,9 @@ def run() -> None:
     player_stats_etl = PlayerStatsETL(spark=spark, s3_uri=s3_uri)
 
     player_stats_df = player_stats_etl.read_to_df()
+    player_stats_df = player_stats_etl.update_shooting_hand_column(
+        df=player_stats_df
+    )
     player_stats_df = player_stats_etl.add_columns_sk(df=player_stats_df)
 
     player_stats_dyf = player_stats_etl.get_dyf(
