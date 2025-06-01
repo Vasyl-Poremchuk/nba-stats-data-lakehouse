@@ -132,7 +132,10 @@ TABLES_MAP = {
         "gold_playoffs_players_per_game_stats",
         "fact_playoffs_player_per_game_stats",
     ),
-    "playoffs_players_total_stats": ("", "fact_playoffs_player_total_stats"),
+    "playoffs_players_total_stats": (
+        "gold_playoffs_players_total_stats",
+        "fact_playoffs_player_total_stats",
+    ),
     "playoffs_players_per_36_minutes_stats": (
         "gold_playoffs_players_per_36_minutes_stats",
         "fact_playoffs_player_per_36_minutes_stats",
@@ -335,8 +338,19 @@ class GoldETL:
 
         return db_name, table_name, quarantine_table_name, dq_rules
 
+    @staticmethod
+    def _get_temp_view(table_name: str) -> str:
+        """Get the name of the temporary view that will be created.
+
+        :param table_name: A table name to use.
+        :return: Temporary view name.
+        """
+        temp_view = f"{table_name}_view"
+
+        return temp_view
+
     def get_query(self, db_name: str, table_name, df: DataFrame) -> str:
-        """Get the SQL query to write the data.
+        """Get the SQL query to create a table.
 
         :param db_name: The database name registered in AWS Glue.
         :param table_name: The table name that will be stored in
@@ -344,8 +358,12 @@ class GoldETL:
         :param df: Dataframe to use.
         :return: SQL query.
         """
+        temp_view = self._get_temp_view(table_name=table_name)
+
+        df.createOrReplaceTempView(temp_view)
+
         query = f"""
-        CREATE TABLE IF NOT EXISTS {CATALOG}.{db_name}.{table_name}
+        CREATE OR REPLACE TABLE {CATALOG}.{db_name}.{table_name}
         USING iceberg
         TBLPROPERTIES (
             'format-version' =  '{self._version}',
@@ -355,7 +373,7 @@ class GoldETL:
         SELECT
             *
         FROM
-            {df};
+            {temp_view};
         """
 
         return query
@@ -1262,7 +1280,7 @@ class GoldETL:
         :return: None.
         """
         db_name, table_name, quarantine_table_name, dq_rules = (
-            self.get_metadata(key="teams_shooting_stats")
+            self.get_metadata(key="teams_advanced_stats")
         )
 
         select_query = f"""
